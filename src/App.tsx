@@ -361,9 +361,15 @@ function App() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`w-full p-3 rounded-lg flex items-center space-x-3 ${selectedCategory === cat.id ? `bg-${cat.color}-600` : 'bg-gray-700 hover:bg-gray-600'}`}
+                className={`w-full p-3 rounded-lg flex items-center space-x-3 transition-colors ${
+                  selectedCategory === cat.id 
+                    ? cat.id === 'overhaul' ? 'bg-orange-600' : cat.id === 'tuning' ? 'bg-blue-600' : 'bg-red-600'
+                    : 'bg-gray-700 hover:bg-gray-600'
+                }`}
               >
-                <span className={`text-${cat.color}-400 text-lg`}>{cat.emoji}</span>
+                <span className={`text-lg ${
+                  cat.id === 'overhaul' ? 'text-orange-400' : cat.id === 'tuning' ? 'text-blue-400' : 'text-red-400'
+                }`}>{cat.emoji}</span>
                 <span className="font-medium text-gray-300">{cat.name}</span>
               </motion.button>
             ))}
