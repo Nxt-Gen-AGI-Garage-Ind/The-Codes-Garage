@@ -16,12 +16,17 @@ export type CategoryId = typeof categories[number]['id'];
 
 const callOpenRouter = async (model: string, prompt: string) => {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  
+  if (!apiKey || apiKey.length < 10) {
+    throw new Error("OpenRouter API Key is missing or invalid. Please configure VITE_OPENROUTER_API_KEY in your environment.");
+  }
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://nxt-gen-agi-garage-ind.github.io/The-Codes-Garage/",
+      "HTTP-Referer": "https://the-codes-garage.vercel.app/",
       "X-Title": "The Code Garage"
     },
     body: JSON.stringify({
@@ -31,7 +36,8 @@ const callOpenRouter = async (model: string, prompt: string) => {
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
   }
 
   const data = await response.json();
@@ -40,11 +46,11 @@ const callOpenRouter = async (model: string, prompt: string) => {
 
 export const runDualAgentDiagnostic = async (sourceCode: string) => {
   // Step 1: The Architect Plans
-  const architectModel = import.meta.env.VITE_ARCHITECT_MODEL;
+  const architectModel = import.meta.env.VITE_ARCHITECT_MODEL || 'openai/gpt-4o-mini';
   const plan = await callOpenRouter(architectModel, `Plan a thorough repair for the following code. Return a structured JSON plan for fixing any logic errors, security leaks, or syntax issues: ${sourceCode}`);
   
   // Step 2: The Mechanic Executes
-  const mechanicModel = import.meta.env.VITE_MECHANIC_MODEL;
+  const mechanicModel = import.meta.env.VITE_MECHANIC_MODEL || 'qwen/qwen-2.5-coder-32b';
   const finalCode = await callOpenRouter(mechanicModel, `Execute the following repair plan and return the final, functional TypeScript code only. Plan: ${plan}. Source Code: ${sourceCode}`);
   
   return finalCode;
