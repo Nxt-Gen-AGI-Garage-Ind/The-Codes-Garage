@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Code Garage</title>
+    <style>
+      :root {
+        --hazard-orange: #f97316;
+        --charcoal-dark: #111827;
+        --charcoal-medium: #1f2937;
+      }
+      body {
+        background: linear-gradient(to bottom, var(--charcoal-dark), var(--charcoal-medium));
+        color: white;
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      @keyframes gear-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .gear-spin {
+        animation: gear-spin 1s linear infinite;
+      }
+      .industrial-theme {
+        border-color: var(--hazard-orange);
+      }
+      .ignition-button:focus {
+        outline: 2px solid var(--hazard-orange);
+      }
+      button:focus {
+        outline: 2px solid var(--hazard-orange);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,6 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-hazard-orange: #f97316;
+  --color-charcoal-dark: #111827;
+  --color-charcoal-medium: #1f2937;
+}
+
 :root {
   --hazard-orange: #f97316;
-  --garage-charcoal: #111827;
+  --charcoal-dark: #111827;
+  --charcoal-medium: #1f2937;
+}
+
+body {
+  background: linear-gradient(to bottom, var(--charcoal-dark), var(--charcoal-medium));
+  color: white;
 }
 
 @keyframes gear-spin {
@@ -8,12 +22,15 @@
   to { transform: rotate(360deg); }
 }
 
-.gear-animate {
-  animation: gear-spin 2s linear infinite;
-  color: var(--hazard-orange);
+.ignition-button .gear-spin {
+  animation: gear-spin 1s linear infinite;
 }
 
-.industrial-border {
-  border: 2px solid #374151;
-  box-shadow: 0 0 15px rgba(249, 115, 22, 0.1);
+.industrial-theme {
+  --tw-ring-color: var(--hazard-orange);
+  border-color: var(--hazard-orange);
+}
+
+button:focus {
+  outline: 2px solid var(--hazard-orange);
 }
