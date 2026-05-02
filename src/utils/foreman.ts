@@ -17,31 +17,37 @@ export type CategoryId = typeof categories[number]['id'];
 const callOpenRouter = async (model: string, prompt: string) => {
   const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
   
-  if (!apiKey || apiKey.length < 10) {
-    throw new Error("OpenRouter API Key is missing or invalid. Please configure VITE_OPENROUTER_API_KEY in your environment.");
+  if (!apiKey) {
+    console.error("VITE_OPENROUTER_API_KEY is missing. Check your environment variables.");
+    throw new Error("API Key Missing");
   }
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://the-codes-garage.vercel.app/",
-      "X-Title": "The Code Garage"
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://the-codes-garage.vercel.app/",
+        "X-Title": "The Code Garage"
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("OpenRouter call failed:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
 };
 
 export const runDualAgentDiagnostic = async (sourceCode: string) => {
