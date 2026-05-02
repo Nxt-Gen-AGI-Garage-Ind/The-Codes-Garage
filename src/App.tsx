@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { categories, CategoryId, Api, analyzeCodeInline } from './utils/foreman';
+import { categories, CategoryId, Api, analyzeCodeInline, runDualAgentDiagnostic } from './utils/foreman';
 
 interface LogEntry {
   message: string;
@@ -66,75 +66,25 @@ function calculateTotal(price, tax) {
   };
 
   const runDiagnostic = async (): Promise<void> => {
-    if (!selectedApi) {
-      addLog('No API selected. Please configure APIs.');
-      return;
-    }
     setIsProcessing(true);
     setError(null);
     const cat = categories.find(c => c.id === selectedCategory)!;
-    addLog(`Starting ${cat.name}...`);
-
-    // Inline Foreman analysis
-    const { suggestedApi: foremanSuggested, probability: foremanProb } = analyzeCodeInline(code, language, cat.id);
-    let currentApi = selectedApi!;
-    let prob = foremanProb;
-    if (foremanSuggested && apis.some(api => api.name === foremanSuggested.name)) {
-      currentApi = foremanSuggested;
-      setSelectedApi(foremanSuggested);
-      addLog(`Foreman suggests ${foremanSuggested.name} for ${cat.name} (optimized for ${language})... Probability: ${foremanProb.toFixed(1)}%`);
-    } else {
-      const fallbackApi = apis.length > 0 ? apis[0] : selectedApi!;
-      currentApi = fallbackApi;
-      setSelectedApi(fallbackApi);
-      prob = Math.random() * 20 + 80;
-      setProbability(prob);
-      addLog(`Using ${fallbackApi.name} for ${cat.name}... Probability: ${prob.toFixed(1)}%`);
-    }
-    setProbability(prob);
-
-    const prompt = cat.prompt.replace('{code}', code).replace('{lang}', language);
+    addLog(`Igniting Industrial Dual-Agent System for ${cat.name}...`);
 
     try {
-      let response;
-      if (currentApi.type === 'ollama') {
-        response = await fetch(currentApi.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: currentApi.model,
-            prompt,
-            stream: false,
-          }),
-        });
-        if (!response.ok) throw new Error(`Ollama error: ${response.status}`);
-        const data = await response.json();
-        const aiResponse = data.response;
-        addLog('Diagnostic complete. Suggested fixes:');
-        addLog(aiResponse);
-      } else {
-        response = await fetch(currentApi.endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(currentApi.key && { 'Authorization': `Bearer ${currentApi.key}` }),
-          },
-          body: JSON.stringify({
-            model: currentApi.model || 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 1000,
-            stream: false,
-          }),
-        });
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-        const data = await response.json();
-        const aiResponse = data.choices[0].message.content;
-        addLog('Diagnostic complete. Suggested fixes:');
-        addLog(aiResponse);
-      }
+      addLog("Architect (GPT-OSS-120B) is planning the repair...");
+      const finalCode = await runDualAgentDiagnostic(code);
+      
+      addLog("Mechanic (Qwen3-Coder) has completed the execution.");
+      addLog("Diagnostic complete. Results received.");
+      addLog("--- REPAIRED CODE ---");
+      addLog(finalCode);
+      
+      // Optionally update the code with the repair
+      // setCode(finalCode); 
     } catch (err) {
       const errorMsg = (err as Error).message;
-      addLog(`Error: ${errorMsg}`);
+      addLog(`System Failure: ${errorMsg}`);
       setError(`Diagnostic failed: ${errorMsg}`);
     } finally {
       setIsProcessing(false);
@@ -390,7 +340,7 @@ function calculateTotal(price, tax) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={runDiagnostic}
-            disabled={isProcessing || !selectedApi}
+            disabled={isProcessing}
             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 p-3 rounded-lg flex items-center justify-center space-x-2 text-white font-medium transition-all ignition-button"
           >
             {isProcessing ? (

@@ -14,8 +14,43 @@ export const categories = [
 
 export type CategoryId = typeof categories[number]['id'];
 
+const callOpenRouter = async (model: string, prompt: string) => {
+  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://nxt-gen-agi-garage-ind.github.io/The-Codes-Garage/",
+      "X-Title": "The Code Garage"
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+};
+
+export const runDualAgentDiagnostic = async (sourceCode: string) => {
+  // Step 1: The Architect Plans
+  const architectModel = import.meta.env.VITE_ARCHITECT_MODEL;
+  const plan = await callOpenRouter(architectModel, `Plan a thorough repair for the following code. Return a structured JSON plan for fixing any logic errors, security leaks, or syntax issues: ${sourceCode}`);
+  
+  // Step 2: The Mechanic Executes
+  const mechanicModel = import.meta.env.VITE_MECHANIC_MODEL;
+  const finalCode = await callOpenRouter(mechanicModel, `Execute the following repair plan and return the final, functional TypeScript code only. Plan: ${plan}. Source Code: ${sourceCode}`);
+  
+  return finalCode;
+};
+
 export function analyzeCodeInline(code: string, language: string, category: string): { suggestedApi: Api | null; probability: number } {
-  // Simple heuristic analysis based on code complexity and language
   const lineCount = code.split('\n').length;
   const hasAsync = code.includes('async') || code.includes('await');
   const isComplex = lineCount > 20 || hasAsync || code.includes('class') || code.includes('function');
@@ -25,7 +60,7 @@ export function analyzeCodeInline(code: string, language: string, category: stri
 
   if (category === 'tuning' && isComplex && (language === 'javascript' || language === 'typescript')) {
     probability = 92;
-    suggestedApi = { name: 'Gemini', endpoint: 'https://api.groq.com/v1/chat/completions', model: 'mixtral-8x7b-32768', type: 'openai' as const }; // Long context for JS/TS
+    suggestedApi = { name: 'Gemini', endpoint: 'https://api.groq.com/v1/chat/completions', model: 'mixtral-8x7b-32768', type: 'openai' as const };
   } else if (category === 'scan' && language === 'python') {
     probability = 78;
     suggestedApi = { name: 'Claude', endpoint: 'https://api.anthropic.com/v1/messages', model: 'claude-3-sonnet-20240229', type: 'openai' as const };
