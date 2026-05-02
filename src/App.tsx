@@ -9,7 +9,15 @@ interface LogEntry {
 }
 
 function App() {
-  const [code, setCode] = useState<string>('// Start coding here...');
+  const [code, setCode] = useState<string>(`// Test Case: Faulty Logic & Syntax
+function calculateTotal(price, tax) {
+  const total = price + tax
+  if (total = 100) { // Error: Assignment instead of comparison
+    console.log("Discount Applied")
+  }
+  return total
+  console.log("Unreachable code") // Error: Unreachable
+}`);
   const [language, setLanguage] = useState<string>('javascript');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('overhaul');
   const [apis, setApis] = useState<Api[]>([]);
@@ -21,6 +29,13 @@ function App() {
   const [selectedApi, setSelectedApi] = useState<Api | null>(null);
   const [probability, setProbability] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Static color class mapping to replace dynamic interpolation
+  const categoryColorMap: Record<string, { bg: string; text: string }> = {
+    orange: { bg: 'bg-orange-600', text: 'text-orange-400' },
+    blue: { bg: 'bg-blue-600', text: 'text-blue-400' },
+    red: { bg: 'bg-red-600', text: 'text-red-400' },
+  };
 
   useEffect(() => {
     try {
@@ -362,14 +377,10 @@ function App() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`w-full p-3 rounded-lg flex items-center space-x-3 transition-colors ${
-                  selectedCategory === cat.id 
-                    ? cat.id === 'overhaul' ? 'bg-orange-600' : cat.id === 'tuning' ? 'bg-blue-600' : 'bg-red-600'
-                    : 'bg-gray-700 hover:bg-gray-600'
+                  selectedCategory === cat.id ? categoryColorMap[cat.color].bg : 'bg-gray-700 hover:bg-gray-600'
                 }`}
               >
-                <span className={`text-lg ${
-                  cat.id === 'overhaul' ? 'text-orange-400' : cat.id === 'tuning' ? 'text-blue-400' : 'text-red-400'
-                }`}>{cat.emoji}</span>
+                <span className={`text-lg ${categoryColorMap[cat.color].text}`}>{cat.emoji}</span>
                 <span className="font-medium text-gray-300">{cat.name}</span>
               </motion.button>
             ))}
