@@ -7,12 +7,12 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Universal configuration for Vercel and GitHub Pages
+// Determine base path based on environment
+const base = process.env.GITHUB_PAGES === 'true' ? '/The-Codes-Garage/' : '/';
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // Automatically adjust base path: GitHub Pages uses the repo name, Vercel uses root.
-  // We check for typical CI environment variables to determine the host.
-  base: "/", 
+  base,
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -20,6 +20,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    emptyOutDir: true
+    emptyOutDir: true,
+    sourcemap: false,
   },
 });
